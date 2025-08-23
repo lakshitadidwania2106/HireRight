@@ -1,1 +1,11 @@
 @import "tailwindcss";
+/* tailwind.css or global CSS */
+@layer utilities {
+    @keyframes slide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .animate-slide {
+      animation: slide 3s linear infinite;
+    }
+  }

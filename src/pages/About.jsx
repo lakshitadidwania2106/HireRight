@@ -99,8 +99,15 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" style={{ fontFamily: 'Madefor, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-        <Header />
+    <div className="min-h-screen bg-gradient-to-br from-white via-slate-50/50 to-white relative overflow-hidden">
+      {/* Animated background elements matching Home page */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 right-20 w-60 h-60 rounded-full bg-gradient-to-br from-violet-400/20 to-purple-200/20 blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/20 to-sky-400/20 blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-gradient-to-br from-red-400/10 to-amber-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+      
+      <Header />
       {/* Hero Section */}
       <section className="relative px-16 py-32 min-h-screen flex items-center overflow-hidden">
         <div className="max-w-7xl mx-auto w-full relative z-10">
@@ -111,24 +118,24 @@ const About = () => {
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
-                  <div key={index} className="flex items-center space-x-3 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 hover:bg-purple-500/20 hover:border-purple-400/50 transition-all duration-500">
-                    <Icon className="w-5 h-5 text-purple-300" />
-                    <span className="text-white font-bold text-lg">{stat.number}</span>
-                    <span className="text-gray-300">{stat.label}</span>
+                  <div key={index} className="flex items-center space-x-3 px-6 py-3 bg-white/70 backdrop-blur-sm rounded-full border border-white/30 hover:bg-violet-400/20 hover:border-violet-400/50 transition-all duration-500 shadow-lg">
+                    <Icon className="w-5 h-5 text-indigo-500" />
+                    <span className="text-slate-800 font-bold text-lg">{stat.number}</span>
+                    <span className="text-slate-600">{stat.label}</span>
                   </div>
                 );
               })}
             </div>
 
-            <h1 className="text-8xl font-black text-transparent bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text mb-8 leading-tight">
+            <h1 className="text-8xl font-black text-transparent bg-gradient-to-r from-slate-800 via-violet-400 to-indigo-500 bg-clip-text mb-8 leading-tight">
               Revolutionizing
               <br />
-              <span className="text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text">
+              <span className="text-transparent bg-gradient-to-r from-violet-400 via-indigo-500 to-blue-500 bg-clip-text">
                 Recruitment
               </span>
             </h1>
             
-            <p className="text-2xl text-gray-200 mb-12 leading-relaxed max-w-4xl">
+            <p className="text-2xl text-slate-600 mb-12 leading-relaxed max-w-4xl">
               InterXAI bridges the gap between traditional interview preparation and real-world hiring processes. 
               Our AI-powered platform provides personalized recruitment experiences for both candidates and employers.
             </p>
@@ -149,7 +156,7 @@ const About = () => {
 
               <div className="bg-gradient-to-r from-blue-900/50 to-cyan-900/50 backdrop-blur-sm rounded-3xl p-8 border border-blue-500/20">
                 <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-violet-400 to-indigo-500 rounded-xl flex items-center justify-center">
                     <Users className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-white">For Employers</h3>
@@ -162,7 +169,7 @@ const About = () => {
             </div>
 
             <div className="text-center">
-              <button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-12 py-6 rounded-full text-2xl font-bold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-purple-500/30 flex items-center space-x-3 mx-auto">
+              <button className="bg-gradient-to-r from-violet-400 to-indigo-500 text-white px-12 py-6 rounded-full text-2xl font-bold hover:from-violet-500 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-violet-500/30 flex items-center space-x-3 mx-auto">
                 <span>Explore Our Platform</span>
                 <ArrowRight className="w-6 h-6" />
               </button>
@@ -178,15 +185,15 @@ const About = () => {
       </section>
 
       {/* Features Section */}
-      <section className="px-16 py-32 bg-gradient-to-br from-slate-800/50 to-purple-900/30 backdrop-blur-sm">
+      <section className="px-16 py-32 bg-white">
         <div className="max-w-7xl mx-auto">
           
           {/* Section Header */}
           <div className="text-center mb-20">
-            <h2 className="text-7xl font-black text-transparent bg-gradient-to-r from-white to-gray-300 bg-clip-text mb-8">
+            <h2 className="text-7xl font-black text-transparent bg-gradient-to-r from-violet-400 to-indigo-500 bg-clip-text mb-8">
               Revolutionary Features
             </h2>
-            <p className="text-2xl text-gray-300 max-w-4xl mx-auto">
+            <p className="text-2xl text-slate-600 max-w-4xl mx-auto">
               Experience the most comprehensive AI-powered recruitment platform with cutting-edge features 
               designed to transform how interviews and hiring work.
             </p>

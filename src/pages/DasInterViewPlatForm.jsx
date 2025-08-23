@@ -490,11 +490,16 @@ const DSAInterviewPlatform = ({  navigate }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700">Loading interview session...</p>
-          <p className="text-sm text-gray-500 mt-2">Fetching DSA topics and generating questions</p>
+      <div className="min-h-screen bg-gradient-to-br from-white via-slate-50/50 to-white flex items-center justify-center relative overflow-hidden">
+        {/* Animated background elements matching Home page */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 w-60 h-60 rounded-full bg-gradient-to-br from-violet-400/20 to-purple-200/20 blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/20 to-sky-400/20 blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
+        <div className="text-center relative z-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+          <p className="text-lg text-slate-700">Loading interview session...</p>
+          <p className="text-sm text-slate-500 mt-2">Fetching DSA topics and generating questions</p>
         </div>
       </div>
     );
@@ -502,17 +507,22 @@ const DSAInterviewPlatform = ({  navigate }) => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-white via-slate-50/50 to-white flex items-center justify-center relative overflow-hidden">
+        {/* Animated background elements matching Home page */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 w-60 h-60 rounded-full bg-gradient-to-br from-violet-400/20 to-purple-200/20 blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/20 to-sky-400/20 blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
+        <div className="text-center bg-white/70 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border border-white/30 max-w-md relative z-10 hover:scale-[1.01] transition-all duration-700">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Error</h2>
+          <p className="text-slate-600 mb-4">{error}</p>
           <button
             onClick={() => {
               setError(null);
               initializeQuestions();
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-gradient-to-r from-violet-400 to-indigo-500 hover:from-violet-500 hover:to-indigo-600 text-white rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             Retry
           </button>
@@ -523,9 +533,14 @@ const DSAInterviewPlatform = ({  navigate }) => {
 
   if (!questions.length) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg text-gray-700">No questions available for this session.</p>
+      <div className="min-h-screen bg-gradient-to-br from-white via-slate-50/50 to-white flex items-center justify-center relative overflow-hidden">
+        {/* Animated background elements matching Home page */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 w-60 h-60 rounded-full bg-gradient-to-br from-violet-400/20 to-purple-200/20 blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/20 to-sky-400/20 blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
+        <div className="text-center relative z-10">
+          <p className="text-lg text-slate-700">No questions available for this session.</p>
         </div>
       </div>
     );
@@ -535,18 +550,25 @@ const DSAInterviewPlatform = ({  navigate }) => {
   const isSubmitted = submittedQuestions.some(sub => sub.questionIndex === currentQuestionIndex);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-slate-50/50 to-white relative overflow-hidden">
+      {/* Animated background elements matching Home page */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 right-20 w-60 h-60 rounded-full bg-gradient-to-br from-violet-400/20 to-purple-200/20 blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/20 to-sky-400/20 blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] bg-gradient-to-br from-red-400/10 to-amber-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+      
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white/70 backdrop-blur-sm shadow-lg border-b border-white/30 relative z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">DSA Interview Platform</h1>
-              <p className="text-sm text-gray-600">Session ID: {sessionId}</p>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-500 bg-clip-text text-transparent">DSA Interview Platform</h1>
+              <p className="text-sm text-slate-600">Session ID: {sessionId}</p>
             </div>
             <div className="flex items-center space-x-6 mt-2 sm:mt-0">
               <div className="flex items-center space-x-2">
-                <Clock className="h-5 w-5 text-gray-600" />
+                <Clock className="h-5 w-5 text-slate-600" />
                 <span className={`text-lg font-mono font-bold ${
                   timeLeft < 300 ? 'text-red-500' : timeLeft < 600 ? 'text-yellow-500' : 'text-green-600'
                 }`}>
@@ -554,14 +576,14 @@ const DSAInterviewPlatform = ({  navigate }) => {
                 </span>
               </div>
               <div className="text-lg font-semibold">
-                Score: <span className="text-blue-600">{score}/{questions.length * 10}</span>
+                Score: <span className="bg-gradient-to-r from-violet-400 to-indigo-500 bg-clip-text text-transparent">{score}/{questions.length * 10}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6 relative z-10">
         {/* Question Navigation */}
         <div className="mb-6 flex flex-wrap gap-2">
           {questions.map((q, index) => {
@@ -570,14 +592,14 @@ const DSAInterviewPlatform = ({  navigate }) => {
               <button
                 key={index}
                 onClick={() => handleQuestionSelect(index)}
-                className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                className={`px-4 py-2 rounded-lg border-2 transition-all duration-300 ${
                   currentQuestionIndex === index
-                    ? 'bg-blue-600 text-white border-blue-600'
+                    ? 'bg-gradient-to-r from-violet-400 to-indigo-500 text-white border-violet-400 shadow-lg'
                     : submission
                     ? submission.allPassed
-                      ? 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200'
-                      : 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200 shadow-md'
+                      : 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200 shadow-md'
+                    : 'bg-white/70 backdrop-blur-sm text-slate-700 border-white/30 hover:bg-white/90 shadow-md hover:scale-105'
                 }`}
               >
                 <div className="font-medium">Q{index + 1}</div>
@@ -590,21 +612,21 @@ const DSAInterviewPlatform = ({  navigate }) => {
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Question Panel */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="p-6 border-b">
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 hover:scale-[1.01] transition-all duration-700">
+            <div className="p-6 border-b border-white/30">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800 mb-1">{currentQuestion.title}</h2>
+                  <h2 className="text-xl font-bold text-slate-800 mb-1">{currentQuestion.title}</h2>
                   <div className="flex items-center space-x-2 text-sm">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                    <span className="px-2 py-1 bg-gradient-to-r from-violet-100 to-indigo-100 text-indigo-800 rounded-lg">
                       {currentQuestion.difficulty}
                     </span>
-                    <span className="text-gray-500">•</span>
-                    <span className="text-gray-600 capitalize">{currentQuestion.topic}</span>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-slate-600 capitalize">{currentQuestion.topic}</span>
                   </div>
                 </div>
                 {isSubmitted && (
-                  <div className={`flex items-center space-x-1 px-3 py-1 rounded ${
+                  <div className={`flex items-center space-x-1 px-3 py-1 rounded-lg ${
                     testResult.allPassed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
                     {testResult.allPassed ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
@@ -618,24 +640,24 @@ const DSAInterviewPlatform = ({  navigate }) => {
             
             <div className="p-6 space-y-6">
               <div>
-                <h3 className="font-semibold text-gray-800 mb-3">Problem Description</h3>
-                <div className="text-gray-700 leading-relaxed whitespace-pre-line">
+                <h3 className="font-semibold text-slate-800 mb-3">Problem Description</h3>
+                <div className="text-slate-700 leading-relaxed whitespace-pre-line">
                   {currentQuestion.description}
                 </div>
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-800 mb-3">Sample Test Case</h3>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2 font-mono text-sm">
-                  <div><span className="text-gray-600">Input:</span> <span className="text-gray-800">{currentQuestion.sampleInput}</span></div>
-                  <div><span className="text-gray-600">Output:</span> <span className="text-gray-800">{currentQuestion.sampleOutput}</span></div>
+                <h3 className="font-semibold text-slate-800 mb-3">Sample Test Case</h3>
+                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 space-y-2 font-mono text-sm border border-white/30">
+                  <div><span className="text-slate-600">Input:</span> <span className="text-slate-800">{currentQuestion.sampleInput}</span></div>
+                  <div><span className="text-gray-600">Output:</span> <span className="text-slate-800">{currentQuestion.sampleOutput}</span></div>
                 </div>
               </div>
 
               {currentQuestion.hints && (
                 <div>
-                  <h3 className="font-semibold text-gray-800 mb-3">Hints</h3>
-                  <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm">
+                  <h3 className="font-semibold text-slate-800 mb-3">Hints</h3>
+                  <ul className="list-disc list-inside space-y-1 text-slate-700 text-sm">
                     {currentQuestion.hints.map((hint, index) => (
                       <li key={index}>{hint}</li>
                     ))}
@@ -644,19 +666,19 @@ const DSAInterviewPlatform = ({  navigate }) => {
               )}
 
               {runResult && (
-                <div className="bg-gray-50 rounded-lg p-4 border">
-                  <h4 className="font-medium text-gray-800 mb-2">
+                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+                  <h4 className="font-medium text-slate-800 mb-2">
                     Your Output: ({runsLeft[currentQuestionIndex] || 0} runs left)
                   </h4>
                   {runResult.isOutput ? (
                     <div className="space-y-2">
-                      <div className="bg-white p-3 rounded border font-mono text-sm">
-                        <div className="text-gray-600 text-xs mb-1">Actual:</div>
-                        <div className="text-gray-900">{runResult.message}</div>
+                      <div className="bg-white/70 backdrop-blur-sm p-3 rounded-lg border border-white/30 font-mono text-sm">
+                        <div className="text-slate-600 text-xs mb-1">Actual:</div>
+                        <div className="text-slate-900">{runResult.message}</div>
                       </div>
-                      <div className="bg-white p-3 rounded border font-mono text-sm">
-                        <div className="text-gray-600 text-xs mb-1">Expected:</div>
-                        <div className="text-gray-900">{runResult.expected}</div>
+                      <div className="bg-white/70 backdrop-blur-sm p-3 rounded-lg border border-white/30 font-mono text-sm">
+                        <div className="text-slate-600 text-xs mb-1">Expected:</div>
+                        <div className="text-slate-900">{runResult.expected}</div>
                       </div>
                       <div className={`text-sm ${
                         runResult.message.trim() === runResult.expected.trim() 
@@ -674,10 +696,10 @@ const DSAInterviewPlatform = ({  navigate }) => {
               )}
 
               {testResult && (
-                <div className={`p-4 rounded-lg border ${
+                <div className={`p-4 rounded-xl border ${
                   testResult.allPassed 
-                    ? 'bg-green-50 border-green-200 text-green-800' 
-                    : 'bg-red-50 border-red-200 text-red-800'
+                    ? 'bg-green-50/70 backdrop-blur-sm border-green-200/50 text-green-800' 
+                    : 'bg-red-50/70 backdrop-blur-sm border-red-200/50 text-red-800'
                 }`}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
@@ -698,90 +720,90 @@ const DSAInterviewPlatform = ({  navigate }) => {
             </div>
           </div>
 
-          {/* Code Editor Panel */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="p-6 border-b">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                  <Code className="h-5 w-5 mr-2" />
-                  Code Editor
-                </h3>
-                <select
-                  value={selectedLanguage}
-                  onChange={handleLanguageChange}
-                  className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isSubmitted}
-                >
-                  {LANGUAGES.map(lang => (
-                    <option key={lang} value={lang}>{lang}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+                     {/* Code Editor Panel */}
+           <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 hover:scale-[1.01] transition-all duration-700">
+             <div className="p-6 border-b border-white/30">
+               <div className="flex items-center justify-between">
+                 <h3 className="text-lg font-bold text-slate-800 flex items-center">
+                   <Code className="h-5 w-5 mr-2" />
+                   Code Editor
+                 </h3>
+                 <select
+                   value={selectedLanguage}
+                   onChange={handleLanguageChange}
+                   className="border border-white/30 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/80 backdrop-blur-sm text-slate-800"
+                   disabled={isSubmitted}
+                 >
+                   {LANGUAGES.map(lang => (
+                     <option key={lang} value={lang}>{lang}</option>
+                   ))}
+                 </select>
+               </div>
+             </div>
             
-            <div className="p-6">
-              <textarea
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="w-full h-96 bg-gray-50 text-gray-900 p-4 rounded-lg font-mono text-sm resize-none border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Write your solution here..."
-                disabled={isSubmitted}
-              />
-              
-              <div className="flex space-x-3 mt-4">
-                <button
-                  onClick={runSingleTest}
-                  disabled={isTestRunning || isSubmitted || !code.trim() || (runsLeft[currentQuestionIndex] || 0) <= 0}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  {isTestRunning ? 'Running...' : `Run (${runsLeft[currentQuestionIndex] || 0} left)`}
-                </button>
-                
-                <button
-                  onClick={submitQuestion}
-                  disabled={isTestRunning || isSubmitted || !code.trim()}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  {isTestRunning ? 'Testing...' : isSubmitted ? 'Submitted' : 'Submit Solution'}
-                </button>
-              </div>
-            </div>
+                         <div className="p-6">
+               <textarea
+                 value={code}
+                 onChange={(e) => setCode(e.target.value)}
+                 className="w-full h-96 bg-white/80 backdrop-blur-sm text-slate-900 p-4 rounded-xl font-mono text-sm resize-none border border-white/30 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                 placeholder="Write your solution here..."
+                 disabled={isSubmitted}
+               />
+               
+               <div className="flex space-x-3 mt-4">
+                 <button
+                   onClick={runSingleTest}
+                   disabled={isTestRunning || isSubmitted || !code.trim() || (runsLeft[currentQuestionIndex] || 0) <= 0}
+                   className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 hover:from-blue-500 hover:to-cyan-600 text-white rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                 >
+                   <Play className="h-4 w-4 mr-2" />
+                   {isTestRunning ? 'Running...' : `Run (${runsLeft[currentQuestionIndex] || 0} left)`}
+                 </button>
+                 
+                 <button
+                   onClick={submitQuestion}
+                   disabled={isTestRunning || isSubmitted || !code.trim()}
+                   className="flex items-center px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                 >
+                   <Send className="h-4 w-4 mr-2" />
+                   {isTestRunning ? 'Testing...' : isSubmitted ? 'Submitted' : 'Submit Solution'}
+                 </button>
+               </div>
+             </div>
           </div>
         </div>
 
-        {/* Final Submit Section */}
-        <div className="mt-8 bg-white rounded-lg shadow-sm border p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">Interview Progress</h3>
-              <p className="text-gray-600">
-                {submittedQuestions.length} of {questions.length} questions completed • 
-                Score: {score}/{questions.length * 10}
-              </p>
-            </div>
-            
-            {submittedQuestions.length > 0 && (
-              <button
-                onClick={handleFinalSubmit}
-                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 font-medium transition-colors"
-                disabled={isTestRunning}
-              >
-                Final Submit
-              </button>
-            )}
-          </div>
-          
-          <div className="mt-4">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(submittedQuestions.length / questions.length) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
+                 {/* Final Submit Section */}
+         <div className="mt-8 bg-white/70 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/30 p-6 hover:scale-[1.01] transition-all duration-700">
+           <div className="flex items-center justify-between">
+             <div>
+               <h3 className="text-lg font-semibold text-slate-800">Interview Progress</h3>
+               <p className="text-slate-600">
+                 {submittedQuestions.length} of {questions.length} questions completed • 
+                 Score: {score}/{questions.length * 10}
+               </p>
+             </div>
+             
+             {submittedQuestions.length > 0 && (
+               <button
+                 onClick={handleFinalSubmit}
+                 className="px-6 py-3 bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 text-white rounded-xl disabled:bg-gray-400 font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                 disabled={isTestRunning}
+               >
+                 Final Submit
+               </button>
+             )}
+           </div>
+           
+           <div className="mt-4">
+             <div className="w-full bg-white/50 rounded-full h-2">
+               <div
+                 className="bg-gradient-to-r from-violet-400 to-indigo-500 h-2 rounded-full transition-all duration-300"
+                 style={{ width: `${(submittedQuestions.length / questions.length) * 100}%` }}
+               ></div>
+             </div>
+           </div>
+         </div>
       </div>
     </div>
   );

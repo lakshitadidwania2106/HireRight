@@ -1124,23 +1124,23 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
       ></div>
       
       {/* Modal Content */}
-      <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 p-8 rounded-2xl border border-slate-700/50 shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+      <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-3xl border border-white/30 shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-600/20 p-3 rounded-xl">
-              <FileText size={24} className="text-purple-400" />
+            <div className="bg-gradient-to-r from-violet-400/20 to-indigo-500/20 p-3 rounded-xl">
+              <FileText size={24} className="text-indigo-500" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-white">Candidate Feedback</h3>
-              <p className="text-slate-400">{candidateName}</p>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-500 bg-clip-text text-transparent">Candidate Feedback</h3>
+              <p className="text-slate-600">{candidateName}</p>
             </div>
           </div>
           
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="bg-slate-700/50 hover:bg-slate-600/50 p-2 rounded-lg transition-all duration-200 group"
+            className="bg-slate-200/50 hover:bg-slate-300/50 p-2 rounded-lg transition-all duration-300 group"
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
@@ -1152,7 +1152,7 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
               strokeWidth="2" 
               strokeLinecap="round" 
               strokeLinejoin="round"
-              className="text-slate-400 group-hover:text-white transition-colors"
+              className="text-slate-600 group-hover:text-slate-800 transition-colors"
             >
               <path d="m18 6-12 12"/>
               <path d="m6 6 12 12"/>
@@ -1161,9 +1161,9 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
         </div>
 
         {/* Feedback Content */}
-        <div className="bg-slate-900/80 p-6 rounded-xl border border-slate-700/40">
-          <div className="prose prose-invert max-w-none">
-            <p className="text-slate-200 leading-relaxed text-lg whitespace-pre-wrap">
+        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl border border-white/30">
+          <div className="prose max-w-none">
+            <p className="text-slate-700 leading-relaxed text-lg whitespace-pre-wrap">
               {feedback || "No feedback provided by the candidate."}
             </p>
           </div>
@@ -1177,36 +1177,43 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
 
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      <div className="p-6">
+    <div className="min-h-screen bg-gradient-to-br from-white via-slate-50/50 to-white relative overflow-hidden">
+      {/* Animated background elements matching Home page */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 right-20 w-60 h-60 rounded-full bg-gradient-to-br from-violet-400/20 to-purple-200/20 blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/20 to-sky-400/20 blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] bg-gradient-to-br from-red-400/10 to-amber-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+      
+      <div className="p-6 relative z-10">
         <button
           onClick={() => navigate(-1)}
-          className="bg-purple-600 px-6 py-3 rounded-lg hover:bg-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl"
+          className="bg-gradient-to-r from-violet-400 to-indigo-500 hover:from-violet-500 hover:to-indigo-600 px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           <ArrowLeft size={18} /> Back to Dashboard
         </button>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="bg-slate-800/60 p-6 rounded-xl border border-slate-700/50 mb-8 shadow-lg">
-        <h1 className="text-3xl font-bold text-purple-300 text-center">
+      <div className="max-w-6xl mx-auto p-6 relative z-10">
+        <div className="bg-white/70 backdrop-blur-sm p-6 rounded-3xl border border-white/30 mb-8 shadow-2xl hover:scale-[1.01] transition-all duration-700">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-indigo-500 bg-clip-text text-transparent text-center">
             Applications 
           </h1>
-          <p className="text-slate-300 text-center mt-2">
+          <p className="text-slate-600 text-center mt-2">
             Review and evaluate candidate applications
           </p>
         </div>
 
         {applications.length === 0 ? (
-  <div className="bg-slate-800/60 p-12 rounded-xl border border-slate-700/50 shadow-lg text-center">
+  <div className="bg-white/70 backdrop-blur-sm p-12 rounded-3xl border border-white/30 shadow-2xl text-center hover:scale-[1.01] transition-all duration-700">
     <FileText size={48} className="mx-auto mb-4 text-slate-500" />
-    <p className="text-slate-400 text-xl">No applications found for this interview.</p>
+    <p className="text-slate-600 text-xl">No applications found for this interview.</p>
     <p className="text-slate-500 mt-2">Applications will appear here once candidates submit them.</p>
   </div>
 ) : (
   <div className="space-y-4">
     {/* Header */}
-    <div className="grid grid-cols-12 gap-4 items-center text-slate-300 font-medium">
+    <div className="grid grid-cols-12 gap-4 items-center text-slate-600 font-medium">
   <div className="col-span-1 text-center">#</div>
   <div className="col-span-2">Candidate</div>
   <div className="col-span-1 text-center">Score</div>
@@ -1218,12 +1225,12 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
     {sortedApplications.map((app, index) => (
       <div
         key={app.id}
-        className="bg-slate-800/60 p-6 rounded-xl border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-200 hover:border-purple-500/50"
+        className="bg-white/70 backdrop-blur-sm p-6 rounded-3xl border border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-violet-400/50 hover:scale-[1.01]"
       >
         <div className="grid grid-cols-12 gap-4 items-center">
           {/* Rank */}
           <div className="col-span-1 text-center">
-            <div className="bg-purple-600/20 text-purple-300 w-8 h-8 rounded-full flex items-center justify-center font-bold">
+            <div className="bg-gradient-to-r from-violet-400/20 to-indigo-500/20 text-indigo-600 w-8 h-8 rounded-full flex items-center justify-center font-bold">
               {index + 1}
             </div>
           </div>
@@ -1231,14 +1238,14 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
           {/* Candidate Info */}
 <div className="col-span-2">
   <div className="flex items-center gap-3">
-    <div className="bg-purple-600/20 p-2 rounded-lg">
-      <User size={20} className="text-purple-400" />
+    <div className="bg-gradient-to-r from-violet-400/20 to-indigo-500/20 p-2 rounded-lg">
+      <User size={20} className="text-indigo-500" />
     </div>
     <div>
       <button
         onClick={() => handleProfileClick(app.user?.id)}
         
-        className="text-lg font-semibold text-slate-200 hover:text-purple-300 transition-colors underline decoration-transparent hover:decoration-purple-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="text-lg font-semibold text-slate-700 hover:text-indigo-600 transition-colors underline decoration-transparent hover:decoration-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {app.user?.username || "Anonymous"}
       </button>
@@ -1263,7 +1270,7 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
       feedback: app.feedback,
       candidateName: app.user?.username || "Anonymous"
     })}
-    className="bg-indigo-600/80 hover:bg-indigo-600 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg mx-auto"
+    className="bg-gradient-to-r from-indigo-400 to-purple-500 hover:from-indigo-500 hover:to-purple-600 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg mx-auto text-white"
   >
     <FileText size={14} />
     Feedback
@@ -1275,7 +1282,7 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
   <div className="flex gap-2 justify-center">
               <button
                 onClick={() => setViewMode({ type: "resume", app })}
-                className="bg-blue-600 px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
+                className="bg-gradient-to-r from-blue-400 to-cyan-500 hover:from-blue-500 hover:to-cyan-600 px-3 py-2 rounded-lg text-sm transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg text-white"
               >
                 <Eye size={14} />
                 Resume
@@ -1283,7 +1290,7 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
 
               <button
                 onClick={() => setViewMode({ type: "extracted", app })}
-                className="bg-green-600 px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
+                className="bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 px-3 py-2 rounded-lg text-sm transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg text-white"
               >
                 <FileText size={14} />
                 Data
@@ -1292,14 +1299,14 @@ const FeedbackModal = ({ feedback, candidateName, onClose }) => {
               {app.approved ? (
                 <button
                   onClick={() => handleToggleApproved(app.id)}
-                  className="bg-red-600 px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
+                  className="bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 px-3 py-2 rounded-lg text-sm transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg text-white"
                 >
                   Disapprove
                 </button>
               ) : (
                 <button
                   onClick={() => handleToggleApproved(app.id)}
-                  className="bg-emerald-600 px-3 py-2 rounded-lg text-sm hover:bg-emerald-700 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
+                  className="bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 px-3 py-2 rounded-lg text-sm transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg text-white"
                 >
                   Approve
                 </button>

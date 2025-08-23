@@ -1,303 +1,305 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import Header from '../components/ui/header';
 import Footer from '../components/ui/footer';
-import { Calendar, Clock, Users, Plus, Trash2, ChevronRight, ChevronLeft, Save, Eye, FileText, Code, Brain, Settings } from 'lucide-react';
-import { getAuthToken } from '../utils/handleToken';
-import { useParams, useNavigate } from 'react-router-dom';
-import { toast} from 'react-toastify';
+import {
+  Calendar,
+  Clock,
+  Users,
+  Plus,
+  Trash2,
+  ChevronRight,
+  ChevronLeft,
+  Save,
+  Eye,
+  FileText,
+  Code,
+  Brain,
+  Settings,
+} from "lucide-react";
+import { getAuthToken } from "../utils/handleToken";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+// removed framer-motion; using CSS transitions instead
 
+// ⚠️ Removed Header/Footer imports to fix previous build error.
 
-
-
-
+// ====== ENV & API ======
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const baseUrl = 'http://localhost:8000/api/';
+const baseUrl = "http://localhost:8000/api/";
 
-// Form Container Component
-const FormContainer = ({ children, isVisible = true }) => (
-  <div className={`container mx-auto px-4 py-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-    <div className="max-w-4xl mx-auto">
-      {children}
+// ====== UI PRIMITIVES ======
+const PageShell = ({ children }) => (
+  <div className="min-h-screen relative overflow-hidden bg-white">
+    {/* Soft background gradients */}
+    <div className="pointer-events-none absolute inset-0">
+      <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-purple-200 via-purple-100 to-blue-100 blur-3xl opacity-70" />
+      <div className="absolute bottom-0 right-0 w-[34rem] h-[34rem] rounded-full bg-gradient-to-br from-indigo-200 via-purple-100 to-sky-100 blur-3xl opacity-70" />
     </div>
+    <main className="relative z-10 container mx-auto px-4 py-10">{children}</main>
   </div>
 );
 
-// Message Notification Component
+const Card = ({ children, className = "" }) => (
+  <div className={`rounded-2xl border border-purple-200 bg-white shadow-sm transition-all duration-300 ${className}`}>
+    {children}
+  </div>
+);
+
+const SectionTitle = ({ icon: Icon, title, right }) => (
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center gap-2">
+      {Icon && <Icon className="w-6 h-6 text-purple-600" />}
+      <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+    </div>
+    {right}
+  </div>
+);
+
+const Field = ({ label, children, error }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    {children}
+    {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+  </div>
+);
+
+const Input = (props) => (
+  <input
+    {...props}
+    className={`w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-purple-400 border-purple-200 ${props.className || ""}`}
+  />
+);
+
+const Textarea = (props) => (
+  <textarea
+    {...props}
+    className={`w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-purple-400 border-purple-200 ${props.className || ""}`}
+  />
+);
+
+const Badge = ({ children }) => (
+  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+    {children}
+  </span>
+);
+
+const GradientButton = ({ children, className = "", ...rest }) => (
+  <button
+    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white bg-gradient-to-r from-purple-500 to-blue-500 shadow-sm hover:shadow-md transition-transform duration-150 hover:scale-[1.03] active:scale-95 ${className}`}
+    {...rest}
+  >
+    {children}
+  </button>
+);
+
+// ====== TOAST-LIKE BANNER ======
 const MessageNotification = ({ message, messageType, onClose }) => {
   if (!message) return null;
-  
-  const bgColor = messageType === 'error' ? 'bg-red-500/20 border-red-500/30' : 
-                  messageType === 'success' ? 'bg-green-500/20 border-green-500/30' : 
-                  'bg-blue-500/20 border-blue-500/30';
-  
+  const styles =
+    messageType === "error"
+      ? "bg-red-100 text-red-800 border-red-200"
+      : messageType === "success"
+      ? "bg-green-100 text-green-800 border-green-200"
+      : "bg-blue-100 text-blue-800 border-blue-200";
   return (
-    <div className={`fixed top-4 right-4 p-4 rounded-lg border backdrop-blur-sm z-50 ${bgColor}`}>
-      <div className="flex items-center justify-between">
-        <span>{message}</span>
-        <button onClick={onClose} className="ml-4 text-gray-400 hover:text-white">
-          ×
+    <div
+      className={`fixed top-6 right-6 z-50 border rounded-xl px-4 py-3 shadow transition-all duration-300 ${styles}`}
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium">{message}</span>
+        <button onClick={onClose} className="text-sm opacity-70 hover:opacity-100">
+          Close
         </button>
       </div>
     </div>
   );
 };
 
-// Interview Setup Page
+// ====== STEP 1: Interview Setup ======
 const InterviewSetup = ({ onNext, formData, setFormData }) => {
   const [errors, setErrors] = useState({});
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+  const setField = (key, val) => {
+    setFormData((p) => ({ ...p, [key]: val }));
+    if (errors[key]) setErrors((e) => ({ ...e, [key]: "" }));
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.desc.trim()) newErrors.desc = 'Description is required';
-    if (!formData.post.trim()) newErrors.post = 'Position is required';
-    if (!formData.submissionDeadline) newErrors.submissionDeadline = 'Submission deadline is required';
-    if (!formData.startTime) newErrors.startTime = 'Start time is required';
-    if (!formData.endTime) newErrors.endTime = 'End time is required';
-    if (!formData.duration || formData.duration <= 0) newErrors.duration = 'Valid duration is required';
-    if (formData.DSA + formData.Dev !== 100) newErrors.allocation = 'DSA and Dev percentages must total 100%';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const validate = () => {
+    const e = {};
+    if (!formData.desc.trim()) e.desc = "Description is required";
+    if (!formData.post.trim()) e.post = "Position is required";
+    if (!formData.submissionDeadline) e.submissionDeadline = "Submission deadline is required";
+    if (!formData.startTime) e.startTime = "Start time is required";
+    if (!formData.endTime) e.endTime = "End time is required";
+    if (!formData.duration || formData.duration <= 0) e.duration = "Valid duration is required";
+    if (formData.DSA + formData.Dev !== 100) e.allocation = "DSA and Dev percentages must total 100%";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleNext = () => {
-    if (validateForm()) {
-      onNext();
-    }
+    if (validate()) onNext();
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
-      <div className="flex items-center mb-6">
-        <Settings className="w-6 h-6 mr-2 text-purple-400" />
-        <h2 className="text-2xl font-bold">Interview Setup</h2>
-      </div>
-      
+    <Card className="p-6">
+      <SectionTitle icon={Settings} title="Interview Setup" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Basic Information */}
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Job Description</label>
-            <textarea
+          <Field label="Job Description" error={errors.desc}>
+            <Textarea
               value={formData.desc}
-              onChange={(e) => handleInputChange('desc', e.target.value)}
+              onChange={(e) => setField("desc", e.target.value)}
               placeholder="Enter job description..."
-              className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none h-24"
+              rows={5}
             />
-            {errors.desc && <p className="text-red-400 text-sm mt-1">{errors.desc}</p>}
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Position</label>
-            <input
+          </Field>
+          <Field label="Position" error={errors.post}>
+            <Input
               type="text"
               value={formData.post}
-              onChange={(e) => handleInputChange('post', e.target.value)}
+              onChange={(e) => setField("post", e.target.value)}
               placeholder="e.g., Backend Developer"
-              className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
-            {errors.post && <p className="text-red-400 text-sm mt-1">{errors.post}</p>}
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Experience Required (years)</label>
-            <input
+          </Field>
+          <Field label="Experience Required (years)">
+            <Input
               type="number"
               value={formData.experience}
-              onChange={(e) => handleInputChange('experience', parseInt(e.target.value) || 0)}
-              min="0"
-              max="20"
-              className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              onChange={(e) => setField("experience", parseInt(e.target.value) || 0)}
+              min={0}
+              max={40}
             />
-            {errors.experience && <p className="text-red-400 text-sm mt-1">{errors.experience}</p>}
-          </div>
+          </Field>
         </div>
-        
-        {/* Timing Information */}
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Submission Deadline</label>
-            <input
+          <Field label="Submission Deadline" error={errors.submissionDeadline}>
+            <Input
               type="datetime-local"
               value={formData.submissionDeadline}
-              onChange={(e) => handleInputChange('submissionDeadline', e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              onChange={(e) => setField("submissionDeadline", e.target.value)}
             />
-            {errors.submissionDeadline && <p className="text-red-400 text-sm mt-1">{errors.submissionDeadline}</p>}
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Interview Start Time</label>
-            <input
+          </Field>
+          <Field label="Interview Start Time" error={errors.startTime}>
+            <Input
               type="datetime-local"
               value={formData.startTime}
-              onChange={(e) => handleInputChange('startTime', e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              onChange={(e) => setField("startTime", e.target.value)}
             />
-            {errors.startTime && <p className="text-red-400 text-sm mt-1">{errors.startTime}</p>}
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Interview End Time</label>
-            <input
+          </Field>
+          <Field label="Interview End Time" error={errors.endTime}>
+            <Input
               type="datetime-local"
               value={formData.endTime}
-              onChange={(e) => handleInputChange('endTime', e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              onChange={(e) => setField("endTime", e.target.value)}
             />
-            {errors.endTime && <p className="text-red-400 text-sm mt-1">{errors.endTime}</p>}
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
-            <input
+          </Field>
+          <Field label="Duration (minutes)" error={errors.duration}>
+            <Input
               type="number"
               value={formData.duration}
-              onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 0)}
-              min="1"
-              max="300"
-              className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              onChange={(e) => setField("duration", parseInt(e.target.value) || 0)}
+              min={1}
+              max={300}
             />
-            {errors.duration && <p className="text-red-400 text-sm mt-1">{errors.duration}</p>}
-          </div>
+          </Field>
         </div>
       </div>
-      
-      {/* Question Allocation */}
-      <div className="mt-6 p-4 bg-white/5 rounded-lg border border-purple-500/20">
-        <h3 className="text-lg font-semibold mb-4">Question Allocation</h3>
+
+      {/* Allocation */}
+      <div className="mt-6 p-4 rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-purple-700">Question Allocation</h3>
+          <Badge>Total: {formData.DSA + formData.Dev}%</Badge>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">DSA Questions (%)</label>
-            <input
+          <Field label="DSA Questions (%)">
+            <Input
               type="number"
               value={formData.DSA}
-              onChange={(e) => handleInputChange('DSA', parseInt(e.target.value) || 0)}
-              min="0"
-              max="100"
-              className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              onChange={(e) => setField("DSA", parseInt(e.target.value) || 0)}
+              min={0}
+              max={100}
             />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Development Questions (%)</label>
-            <input
+          </Field>
+          <Field label="Development Questions (%)">
+            <Input
               type="number"
               value={formData.Dev}
-              onChange={(e) => handleInputChange('Dev', parseInt(e.target.value) || 0)}
-              min="0"
-              max="100"
-              className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              onChange={(e) => setField("Dev", parseInt(e.target.value) || 0)}
+              min={0}
+              max={100}
             />
-          </div>
-          
-          <div className="flex items-center">
-            <label className="flex items-center space-x-2">
+          </Field>
+          <div className="flex items-end">
+            <label className="inline-flex items-center gap-2 select-none">
               <input
                 type="checkbox"
+                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-400"
                 checked={formData.ask_questions_on_resume}
-                onChange={(e) => handleInputChange('ask_questions_on_resume', e.target.checked)}
-                className="w-4 h-4 text-purple-500 rounded focus:ring-purple-500"
+                onChange={(e) => setField("ask_questions_on_resume", e.target.checked)}
               />
-              <span className="text-sm">Ask questions on resume</span>
+              <span className="text-sm text-gray-700">Ask questions on resume</span>
             </label>
           </div>
         </div>
-        
-        {errors.allocation && <p className="text-red-400 text-sm mt-2">{errors.allocation}</p>}
-        
-        <div className="mt-2 text-sm text-gray-400">
-          Total: {formData.DSA + formData.Dev}% (must equal 100%)
-        </div>
+        {errors.allocation && (
+          <p className="text-sm text-red-600 mt-2 transition-opacity duration-300">
+            {errors.allocation}
+          </p>
+        )}
       </div>
-      
+
       <div className="flex justify-end mt-6">
-        <button
-          onClick={handleNext}
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-2"
-        >
+        <GradientButton onClick={handleNext}>
           <span>Next: Questions</span>
           <ChevronRight className="w-4 h-4" />
-        </button>
+        </GradientButton>
       </div>
-    </div>
+    </Card>
   );
 };
 
-// Questions Configuration Page
+// ====== STEP 2: Questions Config (Dev + DSA) ======
 const QuestionsConfig = ({ onNext, onBack, formData, setFormData }) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [activeTab, setActiveTab] = useState('dev');
+  const [activeTab, setActiveTab] = useState("dev");
 
-  const handleAddQuestion = () => {
-    setFormData(prev => ({
-      ...prev,
-      questions: [...prev.questions, { question: '', answer: '' }]
+  // --- Dev Questions ---
+  const addQuestion = () =>
+    setFormData((p) => ({ ...p, questions: [...p.questions, { question: "", answer: "" }] }));
+  const removeQuestion = (idx) =>
+    setFormData((p) => ({ ...p, questions: p.questions.filter((_, i) => i !== idx) }));
+  const updateQuestion = (idx, key, val) =>
+    setFormData((p) => ({
+      ...p,
+      questions: p.questions.map((q, i) => (i === idx ? { ...q, [key]: val } : q)),
     }));
-  };
 
-  const handleRemoveQuestion = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      questions: prev.questions.filter((_, i) => i !== index)
+  // --- DSA Topics ---
+  const addDSA = () =>
+    setFormData((p) => ({
+      ...p,
+      dsa_topics: [...p.dsa_topics, { topic: "", difficulty: "Medium", number_of_questions: 1 }],
     }));
-  };
-
-  const handleQuestionChange = (index, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      questions: prev.questions.map((q, i) => 
-        i === index ? { ...q, [field]: value } : q
-      )
+  const removeDSA = (idx) =>
+    setFormData((p) => ({ ...p, dsa_topics: p.dsa_topics.filter((_, i) => i !== idx) }));
+  const updateDSA = (idx, key, val) =>
+    setFormData((p) => ({
+      ...p,
+      dsa_topics: p.dsa_topics.map((t, i) => (i === idx ? { ...t, [key]: val } : t)),
     }));
-  };
 
-  const handleAddDSATopic = () => {
-    setFormData(prev => ({
-      ...prev,
-      dsa_topics: [...prev.dsa_topics, { topic: '', difficulty: 'Medium', number_of_questions: 1 }]
-    }));
-  };
-
-  const handleRemoveDSATopic = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      dsa_topics: prev.dsa_topics.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleDSATopicChange = (index, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      dsa_topics: prev.dsa_topics.map((topic, i) => 
-        i === index ? { ...topic, [field]: value } : topic
-      )
-    }));
-  };
-
- // Replace the generateQuestionsWithGemini function with this corrected version:
-
- const generateQuestionsWithGemini = async () => {
-  if (!GEMINI_API_KEY) {
-    toast.error('Gemini API key not configured');
-    return;
-  }
-
-  setIsGenerating(true);
-  try {
-    const existingQuestions = formData.questions.map(q => q.question).join("\n");
-const prompt = `
+  // --- Gemini Generation (kept logic) ---
+  const generateQuestionsWithGemini = async () => {
+    if (!GEMINI_API_KEY) {
+      toast.error("Gemini API key not configured");
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const existingQuestions = formData.questions.map((q) => q.question).join("\n");
+      const prompt = `
 Generate 1 new technical interview question for a ${formData.post} position with ${formData.experience} years of experience. 
 Job description: ${formData.desc}. 
 
@@ -306,8 +308,6 @@ ${existingQuestions}
 
 Return ONLY JSON array of objects with 'question' and 'answer' fields.
 
-
-    
     Example format:
     [
       {
@@ -316,402 +316,328 @@ Return ONLY JSON array of objects with 'question' and 'answer' fields.
       }
     ]`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2048,
+            },
+          }),
         }
-      })
-    });
+      );
 
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
+      if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+      const data = await response.json();
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content)
+        throw new Error("Invalid response format from Gemini API");
 
-    const data = await response.json();
-    
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error('Invalid response format from Gemini API');
-    }
-    
-    const generatedText = data.candidates[0].content.parts[0].text;
-    
-    // Clean the response - remove any markdown formatting
-    let cleanedText = generatedText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    
-    // Try to extract JSON from the response
-    let jsonMatch = cleanedText.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-      // If no array found, try to find the first [ and last ]
-      const firstBracket = cleanedText.indexOf('[');
-      const lastBracket = cleanedText.lastIndexOf(']');
-      if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-        cleanedText = cleanedText.substring(firstBracket, lastBracket + 1);
-      }
-    } else {
-      cleanedText = jsonMatch[0];
-    }
-    
-    try {
-      const questions = JSON.parse(cleanedText);
-      if (Array.isArray(questions) && questions.length > 0) {
-        // Validate the structure
-        const validQuestions = questions.filter(q => 
-          q && typeof q === 'object' && 
-          typeof q.question === 'string' && 
-          typeof q.answer === 'string' &&
-          q.question.trim() !== '' && 
-          q.answer.trim() !== ''
-        );
-        
-        if (validQuestions.length > 0) {
-          // FIXED: Add to existing questions instead of replacing them
-          setFormData(prev => ({
-            ...prev,
-            questions: [...prev.questions, ...validQuestions.slice(0, 1)] // Only add 1 question at a time
-          }));
-          toast.success(`Successfully generated and added 1 question!`);
-        } else {
-          throw new Error('No valid questions found in response');
-        }
+      const generatedText = data.candidates[0].content.parts[0].text;
+      let cleanedText = generatedText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      let jsonMatch = cleanedText.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        const first = cleanedText.indexOf("[");
+        const last = cleanedText.lastIndexOf("]");
+        if (first !== -1 && last !== -1 && last > first) cleanedText = cleanedText.substring(first, last + 1);
       } else {
-        throw new Error('Response is not a valid array of questions');
+        cleanedText = jsonMatch[0];
       }
-    } catch (parseError) {
-      console.error('JSON parsing error:', parseError);
-      console.error('Cleaned text:', cleanedText);
-      throw new Error('Failed to parse generated questions. Please try again.');
+
+      try {
+        const questions = JSON.parse(cleanedText);
+        if (Array.isArray(questions) && questions.length > 0) {
+          const valid = questions.filter(
+            (q) => q && typeof q === "object" && typeof q.question === "string" && typeof q.answer === "string" && q.question.trim() && q.answer.trim()
+          );
+          if (valid.length > 0) {
+            setFormData((p) => ({ ...p, questions: [...p.questions, ...valid.slice(0, 1)] }));
+            toast.success("Successfully generated and added 1 question!");
+          } else throw new Error("No valid questions found in response");
+        } else throw new Error("Response is not a valid array of questions");
+      } catch (err) {
+        console.error("JSON parsing error:", err);
+        console.error("Cleaned text:", cleanedText);
+        throw new Error("Failed to parse generated questions. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error generating questions:", error);
+      toast.error(`Failed to generate questions: ${error.message}. Please add them manually.`);
+    } finally {
+      setIsGenerating(false);
     }
-  } catch (error) {
-    console.error('Error generating questions:', error);
-    toast.error(`Failed to generate questions: ${error.message}. Please add them manually.`);
-  } finally {
-    setIsGenerating(false);
-  }
-};
+  };
+
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
-          <FileText className="w-6 h-6 mr-2 text-purple-400" />
-          <h2 className="text-2xl font-bold">Questions Configuration</h2>
-        </div>
+    <Card className="p-6">
+      <SectionTitle
+        icon={FileText}
+        title="Questions Configuration"
+        right={
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-white hover:bg-gray-50"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back
+          </button>
+        }
+      />
+
+      {/* Tabs */}
+      <div className="mb-6 p-1 bg-purple-50 border border-purple-200 rounded-xl inline-flex">
         <button
-          onClick={onBack}
-          className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
+          onClick={() => setActiveTab("dev")}
+          className={`px-4 py-2 rounded-lg font-medium inline-flex items-center gap-2 ${
+            activeTab === "dev" ? "bg-white shadow border border-purple-200" : "text-gray-600"
+          }`}
         >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Back</span>
+          <Code className="w-4 h-4" /> Development
+        </button>
+        <button
+          onClick={() => setActiveTab("dsa")}
+          className={`px-4 py-2 rounded-lg font-medium inline-flex items-center gap-2 ml-1 ${
+            activeTab === "dsa" ? "bg-white shadow border border-purple-200" : "text-gray-600"
+          }`}
+        >
+          <Brain className="w-4 h-4" /> DSA Topics
         </button>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex space-x-1 mb-6 bg-white/5 rounded-lg p-1">
-        <button
-          onClick={() => setActiveTab('dev')}
-          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
-            activeTab === 'dev' ? 'bg-purple-500 text-white' : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          <Code className="w-4 h-4" />
-          <span>Development Questions</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('dsa')}
-          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
-            activeTab === 'dsa' ? 'bg-purple-500 text-white' : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          <Brain className="w-4 h-4" />
-          <span>DSA Topics</span>
-        </button>
-      </div>
-
-      {/* Development Questions Tab */}
-      {activeTab === 'dev' && (
+      {/* Dev Tab */}
+      {activeTab === "dev" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Development Questions ({formData.Dev}%)</h3>
-            <div className="flex space-x-2">
+            <div className="flex items-center gap-2">
+              <GradientButton onClick={generateQuestionsWithGemini} disabled={isGenerating}>
+                <Brain className="w-4 h-4" /> {isGenerating ? "Generating..." : "Generate with AI"}
+              </GradientButton>
               <button
-                onClick={generateQuestionsWithGemini}
-                disabled={isGenerating}
-                className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg font-medium hover:from-green-600 hover:to-blue-600 transition-all duration-300 disabled:opacity-50 flex items-center space-x-2"
+                onClick={addQuestion}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-white hover:bg-gray-50"
               >
-                <Brain className="w-4 h-4" />
-                <span>{isGenerating ? 'Generating...' : 'Generate with AI'}</span>
-              </button>
-              <button
-                onClick={handleAddQuestion}
-                className="px-4 py-2 bg-purple-500 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Question</span>
+                <Plus className="w-4 h-4" /> Add Question
               </button>
             </div>
           </div>
 
-          <div className="max-h-96 overflow-y-auto space-y-4 pr-2">
-            {formData.questions.map((question, index) => (
-              <div key={index} className="bg-white/5 rounded-lg p-4 border border-purple-500/20">
+          <div className="max-h-96 overflow-y-auto pr-1 space-y-4">
+            {formData.questions.map((q, i) => (
+              <div key={i} className="p-4 rounded-xl border border-purple-200 bg-purple-50/40">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-purple-400">Question {index + 1}</span>
-                  <button
-                    onClick={() => handleRemoveQuestion(index)}
-                    className="text-red-400 hover:text-red-300 transition-colors"
-                  >
+                  <span className="text-sm text-purple-700 font-medium">Question {i + 1}</span>
+                  <button onClick={() => removeQuestion(i)} className="text-red-600 hover:text-red-700">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="space-y-2">
-                  <textarea
-                    value={question.question}
-                    onChange={(e) => handleQuestionChange(index, 'question', e.target.value)}
+                  <Textarea
+                    value={q.question}
+                    onChange={(e) => updateQuestion(i, "question", e.target.value)}
                     placeholder="Enter your question..."
-                    className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none h-20"
+                    rows={4}
                   />
-                  <textarea
-                    value={question.answer}
-                    onChange={(e) => handleQuestionChange(index, 'answer', e.target.value)}
+                  <Textarea
+                    value={q.answer}
+                    onChange={(e) => updateQuestion(i, "answer", e.target.value)}
                     placeholder="Enter the expected answer..."
-                    className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none h-16"
+                    rows={3}
                   />
                 </div>
               </div>
             ))}
+            {formData.questions.length === 0 && (
+              <p className="text-sm text-gray-600">No questions added yet.</p>
+            )}
           </div>
         </div>
       )}
 
-      {/* DSA Topics Tab */}
-      {activeTab === 'dsa' && (
+      {/* DSA Tab */}
+      {activeTab === "dsa" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">DSA Topics ({formData.DSA}%)</h3>
-            <button
-              onClick={handleAddDSATopic}
-              className="px-4 py-2 bg-purple-500 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Topic</span>
+            <button onClick={addDSA} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-white hover:bg-gray-50">
+              <Plus className="w-4 h-4" /> Add Topic
             </button>
           </div>
-
-          <div className="max-h-96 overflow-y-auto space-y-4 pr-2">
-            {formData.dsa_topics.map((topic, index) => (
-              <div key={index} className="bg-white/5 rounded-lg p-4 border border-purple-500/20">
+          <div className="max-h-96 overflow-y-auto pr-1 space-y-4">
+            {formData.dsa_topics.map((t, i) => (
+              <div key={i} className="p-4 rounded-xl border border-purple-200 bg-purple-50/40">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-purple-400">Topic {index + 1}</span>
-                  <button
-                    onClick={() => handleRemoveDSATopic(index)}
-                    className="text-red-400 hover:text-red-300 transition-colors"
-                  >
+                  <span className="text-sm text-purple-700 font-medium">Topic {i + 1}</span>
+                  <button onClick={() => removeDSA(i)} className="text-red-600 hover:text-red-700">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Topic</label>
-                    <input
+                  <Field label="Topic">
+                    <Input
                       type="text"
-                      value={topic.topic}
-                      onChange={(e) => handleDSATopicChange(index, 'topic', e.target.value)}
+                      value={t.topic}
+                      onChange={(e) => updateDSA(i, "topic", e.target.value)}
                       placeholder="e.g., Trees, Graphs"
-                      className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Difficulty</label>
+                  </Field>
+                  <Field label="Difficulty">
                     <select
-                      value={topic.difficulty}
-                      onChange={(e) => handleDSATopicChange(index, 'difficulty', e.target.value)}
-                      className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      value={t.difficulty}
+                      onChange={(e) => updateDSA(i, "difficulty", e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-purple-200 focus:ring-2 focus:ring-purple-400"
                     >
                       <option value="Easy">Easy</option>
                       <option value="Medium">Medium</option>
                       <option value="Hard">Hard</option>
                     </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Questions</label>
-                    <input
+                  </Field>
+                  <Field label="Questions">
+                    <Input
                       type="number"
-                      value={topic.number_of_questions}
-                      onChange={(e) => handleDSATopicChange(index, 'number_of_questions', parseInt(e.target.value) || 1)}
-                      min="1"
-                      max="10"
-                      className="w-full px-3 py-2 bg-white/10 border border-purple-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      value={t.number_of_questions}
+                      onChange={(e) => updateDSA(i, "number_of_questions", parseInt(e.target.value) || 1)}
+                      min={1}
+                      max={10}
                     />
-                  </div>
+                  </Field>
                 </div>
               </div>
             ))}
+            {formData.dsa_topics.length === 0 && (
+              <p className="text-sm text-gray-600">No DSA topics added yet.</p>
+            )}
           </div>
         </div>
       )}
 
       <div className="flex justify-between mt-6">
-        <button
-          onClick={onBack}
-          className="px-6 py-3 bg-gray-600 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center space-x-2"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Back</span>
+        <button onClick={onBack} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-white hover:bg-gray-50">
+          <ChevronLeft className="w-4 h-4" /> Back
         </button>
-        <button
-          onClick={onNext}
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-2"
-        >
-          <span>Next: Review</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        <GradientButton onClick={onNext}>
+          Next: Review <ChevronRight className="w-4 h-4" />
+        </GradientButton>
       </div>
-    </div>
+    </Card>
   );
 };
 
-// Review and Submit Page
-const ReviewSubmit = ({ onBack, formData, onSubmit, isLoading, isEditMode })  => {
-  const formatDateTime = (dateTime) => {
-    return new Date(dateTime).toLocaleString();
-  };
-
-  const handleSubmit = () => {
-    onSubmit();
-  };
-
+// ====== STEP 3: Review & Submit ======
+const ReviewSubmit = ({ onBack, formData, onSubmit, isLoading, isEditMode }) => {
+  const formatDateTime = (dt) => (dt ? new Date(dt).toLocaleString() : "—");
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
-          <Eye className="w-6 h-6 mr-2 text-purple-400" />
-          <h2 className="text-2xl font-bold">Review & Submit</h2>
-        </div>
-        <button
-          onClick={onBack}
-          className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Back</span>
-        </button>
-      </div>
+    <Card className="p-6">
+      <SectionTitle
+        icon={Eye}
+        title="Review & Submit"
+        right={
+          <button onClick={onBack} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-white hover:bg-gray-50">
+            <ChevronLeft className="w-4 h-4" /> Back
+          </button>
+        }
+      />
 
       <div className="space-y-6">
-        {/* Basic Information */}
-        <div className="bg-white/5 rounded-lg p-4 border border-purple-500/20">
-          <h3 className="text-lg font-semibold mb-4 text-purple-400">Basic Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/40">
+          <h3 className="text-lg font-semibold text-purple-700 mb-3">Basic Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-sm font-medium text-gray-400">Position:</span>
-              <p className="text-white">{formData.post}</p>
+              <span className="text-gray-600">Position:</span>
+              <p className="text-gray-900">{formData.post}</p>
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-400">Experience Required:</span>
-              <p className="text-white">{formData.experience} years</p>
+              <span className="text-gray-600">Experience Required:</span>
+              <p className="text-gray-900">{formData.experience} years</p>
             </div>
             <div className="md:col-span-2">
-              <span className="text-sm font-medium text-gray-400">Description:</span>
-              <p className="text-white">{formData.desc}</p>
+              <span className="text-gray-600">Description:</span>
+              <p className="text-gray-900 whitespace-pre-wrap">{formData.desc}</p>
             </div>
           </div>
         </div>
 
-        {/* Timing Information */}
-        <div className="bg-white/5 rounded-lg p-4 border border-purple-500/20">
-          <h3 className="text-lg font-semibold mb-4 text-purple-400">Timing</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/40">
+          <h3 className="text-lg font-semibold text-purple-700 mb-3">Timing</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-sm font-medium text-gray-400">Submission Deadline:</span>
-              <p className="text-white">{formatDateTime(formData.submissionDeadline)}</p>
+              <span className="text-gray-600">Submission Deadline:</span>
+              <p className="text-gray-900">{formatDateTime(formData.submissionDeadline)}</p>
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-400">Duration:</span>
-              <p className="text-white">{formData.duration} minutes</p>
+              <span className="text-gray-600">Duration:</span>
+              <p className="text-gray-900">{formData.duration} minutes</p>
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-400">Start Time:</span>
-              <p className="text-white">{formatDateTime(formData.startTime)}</p>
+              <span className="text-gray-600">Start Time:</span>
+              <p className="text-gray-900">{formatDateTime(formData.startTime)}</p>
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-400">End Time:</span>
-              <p className="text-white">{formatDateTime(formData.endTime)}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Question Configuration */}
-        <div className="bg-white/5 rounded-lg p-4 border border-purple-500/20">
-          <h3 className="text-lg font-semibold mb-4 text-purple-400">Question Configuration</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <span className="text-sm font-medium text-gray-400">DSA Questions:</span>
-              <p className="text-white">{formData.DSA}%</p>
-            </div>
-            <div>
-              <span className="text-sm font-medium text-gray-400">Development Questions:</span>
-              <p className="text-white">{formData.Dev}%</p>
-            </div>
-            <div>
-              <span className="text-sm font-medium text-gray-400">Resume Questions:</span>
-              <p className="text-white">{formData.ask_questions_on_resume ? 'Yes' : 'No'}</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <span className="text-sm font-medium text-gray-400">Development Questions:</span>
-              <p className="text-white">{formData.questions.length} questions</p>
-            </div>
-            <div>
-              <span className="text-sm font-medium text-gray-400">DSA Topics:</span>
-              <p className="text-white">{formData.dsa_topics.length} topics</p>
+              <span className="text-gray-600">End Time:</span>
+              <p className="text-gray-900">{formatDateTime(formData.endTime)}</p>
             </div>
           </div>
         </div>
 
-        {/* Development Questions Preview */}
+        <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/40">
+          <h3 className="text-lg font-semibold text-purple-700 mb-3">Question Configuration</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span className="text-gray-600">DSA Questions:</span>
+              <p className="text-gray-900">{formData.DSA}%</p>
+            </div>
+            <div>
+              <span className="text-gray-600">Development Questions:</span>
+              <p className="text-gray-900">{formData.Dev}%</p>
+            </div>
+            <div>
+              <span className="text-gray-600">Resume Questions:</span>
+              <p className="text-gray-900">{formData.ask_questions_on_resume ? "Yes" : "No"}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 text-sm">
+            <div>
+              <span className="text-gray-600">Development Questions:</span>
+              <p className="text-gray-900">{formData.questions.length} questions</p>
+            </div>
+            <div>
+              <span className="text-gray-600">DSA Topics:</span>
+              <p className="text-gray-900">{formData.dsa_topics.length} topics</p>
+            </div>
+          </div>
+        </div>
+
         {formData.questions.length > 0 && (
-          <div className="bg-white/5 rounded-lg p-4 border border-purple-500/20">
-            <h3 className="text-lg font-semibold mb-4 text-purple-400">Development Questions Preview</h3>
-            <div className="max-h-40 overflow-y-auto space-y-2">
-              {formData.questions.slice(0, 3).map((question, index) => (
-                <div key={index} className="text-sm">
-                  <span className="text-gray-400">{index + 1}.</span>
-                  <span className="text-white ml-2">{question.question}</span>
+          <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/40">
+            <h3 className="text-lg font-semibold text-purple-700 mb-3">Development Questions Preview</h3>
+            <div className="max-h-40 overflow-y-auto space-y-2 text-sm">
+              {formData.questions.slice(0, 3).map((q, i) => (
+                <div key={i} className="text-gray-900">
+                  <span className="text-gray-600">{i + 1}.</span>
+                  <span className="ml-2">{q.question}</span>
                 </div>
               ))}
               {formData.questions.length > 3 && (
-                <div className="text-sm text-gray-400">
-                  ... and {formData.questions.length - 3} more questions
-                </div>
+                <div className="text-sm text-gray-600">... and {formData.questions.length - 3} more questions</div>
               )}
             </div>
           </div>
         )}
 
-        {/* DSA Topics Preview */}
         {formData.dsa_topics.length > 0 && (
-          <div className="bg-white/5 rounded-lg p-4 border border-purple-500/20">
-            <h3 className="text-lg font-semibold mb-4 text-purple-400">DSA Topics Preview</h3>
-            <div className="max-h-40 overflow-y-auto space-y-2">
-              {formData.dsa_topics.map((topic, index) => (
-                <div key={index} className="flex items-center justify-between text-sm">
-                  <span className="text-white">{topic.topic}</span>
-                  <div className="flex space-x-4">
-                    <span className="text-gray-400">Difficulty: {topic.difficulty}</span>
-                    <span className="text-gray-400">Questions: {topic.number_of_questions}</span>
+          <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/40">
+            <h3 className="text-lg font-semibold text-purple-700 mb-3">DSA Topics Preview</h3>
+            <div className="max-h-40 overflow-y-auto space-y-2 text-sm">
+              {formData.dsa_topics.map((t, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <span className="text-gray-900">{t.topic}</span>
+                  <div className="flex items-center gap-4 text-gray-600">
+                    <span>Difficulty: {t.difficulty}</span>
+                    <span>Questions: {t.number_of_questions}</span>
                   </div>
                 </div>
               ))}
@@ -721,169 +647,118 @@ const ReviewSubmit = ({ onBack, formData, onSubmit, isLoading, isEditMode })  =>
       </div>
 
       <div className="flex justify-between mt-8">
-        <button
-          onClick={onBack}
-          className="px-6 py-3 bg-gray-600 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center space-x-2"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Back</span>
+        <button onClick={onBack} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-white hover:bg-gray-50">
+          <ChevronLeft className="w-4 h-4" /> Back
         </button>
-        <button
-          onClick={handleSubmit}
-          disabled={isLoading}
-          className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg font-medium hover:from-green-600 hover:to-blue-600 transition-all duration-300 disabled:opacity-50 flex items-center space-x-2"
-        >
+        <GradientButton disabled={isLoading} onClick={onSubmit}>
           <Save className="w-4 h-4" />
-          <span>{isLoading ? (isEditMode ? 'Updating Interview...' : 'Creating Interview...') : (isEditMode ? 'Update Interview' : 'Create Interview')}</span>
-        </button>
+          {isLoading ? (isEditMode ? "Updating Interview..." : "Creating Interview...") : isEditMode ? "Update Interview" : "Create Interview"}
+        </GradientButton>
       </div>
-    </div>
+    </Card>
   );
 };
 
-// Main Interview Creation Component
+// ====== MAIN: InterviewCreation (full flow restored) ======
 const InterviewCreation = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [isVisible, setIsVisible] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("info");
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
 
   const [formData, setFormData] = useState({
-    desc: '',
-    post: '',
+    desc: "",
+    post: "",
     experience: 0,
-    submissionDeadline: '',
-    startTime: '',
-    endTime: '',
+    submissionDeadline: "",
+    startTime: "",
+    endTime: "",
     duration: 60,
     DSA: 60,
     Dev: 40,
     ask_questions_on_resume: true,
     questions: [],
-    dsa_topics: []
+    dsa_topics: [],
   });
-  const { id } = useParams(); // Get interview ID from URL
-  const navigate = useNavigate();
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [originalData, setOriginalData] = useState(null);
 
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (id) {
       setIsEditMode(true);
       loadInterviewData(id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const showMessage = (msg, type = 'info') => {
+  const showMessage = (msg, type = "info") => {
     setMessage(msg);
     setMessageType(type);
     setTimeout(() => {
-      setMessage('');
-      setMessageType('');
+      setMessage("");
     }, 5000);
   };
 
-  const clearMessage = () => {
-    setMessage('');
-    setMessageType('');
-  };
-
-  const handleNext = () => {
-    setCurrentStep(prev => prev + 1);
-  };
-
-  const handleBack = () => {
-    setCurrentStep(prev => prev - 1);
-  };
+  const clearMessage = () => setMessage("");
 
   const loadInterviewData = async (interviewId) => {
     try {
       const token = getAuthToken();
-      const response = await fetch(`${baseUrl}interview/get-interview/${interviewId}/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`,
-        },
+      const res = await fetch(`${baseUrl}interview/get-interview/${interviewId}/`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", Authorization: `Token ${token}` },
       });
-  
-      if (response.ok) {
-        const data = await response.json();
-        setOriginalData(data);
-        
-        // Convert ISO strings back to datetime-local format
-        const formatForInput = (isoString) => {
-          return new Date(isoString).toISOString().slice(0, 16);
-        };
-  
-        setFormData({
-          desc: data.desc || '',
-          post: data.post || '',
-          experience: data.experience || 0,
-          submissionDeadline: formatForInput(data.submissionDeadline),
-          startTime: formatForInput(data.startTime),
-          endTime: formatForInput(data.endTime),
-          duration: data.duration || 60,
-          DSA: data.DSA || 60,
-          Dev: data.Dev || 40,
-          ask_questions_on_resume: data.ask_questions_on_resume || true,
-          questions: data.questions || [],
-          dsa_topics: data.dsa_topics || []
-        });
-      } else {
-        showMessage('Failed to load interview data', 'error');
-      }
-    } catch (error) {
-      console.error('Error loading interview:', error);
-      showMessage('Error loading interview data', 'error');
+      if (!res.ok) throw new Error("Failed to load interview data");
+      const data = await res.json();
+      setOriginalData(data);
+      const toLocal = (iso) => new Date(iso).toISOString().slice(0, 16);
+      setFormData({
+        desc: data.desc || "",
+        post: data.post || "",
+        experience: data.experience || 0,
+        submissionDeadline: toLocal(data.submissionDeadline),
+        startTime: toLocal(data.startTime),
+        endTime: toLocal(data.endTime),
+        duration: data.duration || 60,
+        DSA: data.DSA || 60,
+        Dev: data.Dev || 40,
+        ask_questions_on_resume: data.ask_questions_on_resume ?? true,
+        questions: data.questions || [],
+        dsa_topics: data.dsa_topics || [],
+      });
+    } catch (err) {
+      console.error(err);
+      showMessage("Error loading interview data", "error");
     }
   };
 
-
   const handleSubmit = async () => {
     setIsLoading(true);
-  
     try {
-      // Validate form data before submission
-      if (!formData.desc.trim()) {
-        showMessage('Description is required', 'error');
-        setIsLoading(false);
-        return;
-      }
-  
-      if (!formData.post.trim()) {
-        showMessage('Position is required', 'error');
-        setIsLoading(false);
-        return;
-      }
-  
-      // Ensure dates are valid
+      if (!formData.desc.trim()) return showMessage("Description is required", "error"), setIsLoading(false);
+      if (!formData.post.trim()) return showMessage("Position is required", "error"), setIsLoading(false);
+
       const submissionDeadline = new Date(formData.submissionDeadline);
       const startTime = new Date(formData.startTime);
       const endTime = new Date(formData.endTime);
-  
-      if (isNaN(submissionDeadline.getTime()) || isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-        showMessage('Invalid date format', 'error');
+      if ([submissionDeadline, startTime, endTime].some((d) => isNaN(d.getTime()))) {
+        showMessage("Invalid date format", "error");
         setIsLoading(false);
         return;
       }
-  
-      // Check if DSA + Dev equals 100
       if (formData.DSA + formData.Dev !== 100) {
-        showMessage('DSA and Dev percentages must total 100%', 'error');
+        showMessage("DSA and Dev percentages must total 100%", "error");
         setIsLoading(false);
         return;
       }
-  
+
       const payload = {
         desc: formData.desc.trim(),
         post: formData.post.trim(),
-        experience: parseInt(formData.experience), // Keep as number, not string
+        experience: parseInt(formData.experience),
         submissionDeadline: submissionDeadline.toISOString(),
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
@@ -891,55 +766,42 @@ const InterviewCreation = () => {
         DSA: parseInt(formData.DSA),
         Dev: parseInt(formData.Dev),
         ask_questions_on_resume: Boolean(formData.ask_questions_on_resume),
-        questions: formData.questions.filter(q => q.question.trim() && q.answer.trim()), // Filter out empty questions
-        dsa_topics: formData.dsa_topics.filter(topic => topic.topic.trim()), // Filter out empty topics
+        questions: formData.questions.filter((q) => q.question.trim() && q.answer.trim()),
+        dsa_topics: formData.dsa_topics.filter((t) => t.topic.trim()),
       };
-  
-      console.log('Payload being sent:', JSON.stringify(payload, null, 2)); // Debug log
-  
+
       const token = getAuthToken();
       if (!token) {
-        showMessage('Authentication token not found. Please login again.', 'error');
+        showMessage("Authentication token not found. Please login again.", "error");
         setIsLoading(false);
         return;
       }
-  
+
       const url = isEditMode
         ? `${baseUrl}interview/edit-interview/${id}/`
         : `${baseUrl}interview/create-interview/`;
-  
-      const method = isEditMode ? 'PUT' : 'POST';
-  
-      const response = await fetch(url, {
+      const method = isEditMode ? "PUT" : "POST";
+
+      const res = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Token ${token}` },
         body: JSON.stringify(payload),
       });
-  
-      if (response.ok) {
-        const successMessage = isEditMode
-          ? 'Interview updated successfully!'
-          : 'Interview created successfully!';
-        showMessage(successMessage, 'success');
-  
-        // Navigate back to organization dashboard using orgId from query param
+
+      if (res.ok) {
+        showMessage(isEditMode ? "Interview updated successfully!" : "Interview created successfully!", "success");
         setTimeout(() => {
           const queryParams = new URLSearchParams(window.location.search);
-          const orgId = queryParams.get('orgId');
-  
-          if (isEditMode && orgId) {
-            navigate(`/org-dashboard/${orgId}`);
-          } else {
+          const orgId = queryParams.get("orgId");
+          if (isEditMode && orgId) navigate(`/org-dashboard/${orgId}`);
+          else {
             setFormData({
-              desc: '',
-              post: '',
+              desc: "",
+              post: "",
               experience: 0,
-              submissionDeadline: '',
-              startTime: '',
-              endTime: '',
+              submissionDeadline: "",
+              startTime: "",
+              endTime: "",
               duration: 60,
               DSA: 60,
               Dev: 40,
@@ -949,115 +811,82 @@ const InterviewCreation = () => {
             });
             setCurrentStep(1);
           }
-        }, 2000);
+        }, 1200);
       } else {
-        let errorMessage = isEditMode
-          ? 'Failed to update interview'
-          : 'Failed to create interview';
+        let msg = isEditMode ? "Failed to update interview" : "Failed to create interview";
         try {
-          const errorData = await response.json();
-          if (errorData.detail) errorMessage = errorData.detail;
-        } catch (err) {
-          // Ignore JSON parse errors
-        }
-        showMessage(errorMessage, 'error');
+          const errData = await res.json();
+          if (errData.detail) msg = errData.detail;
+        } catch (_) {}
+        showMessage(msg, "error");
       }
-    } catch (error) {
-      console.error('Error with interview:', error);
-      showMessage('Server error occurred', 'error');
+    } catch (err) {
+      console.error("Error with interview:", err);
+      showMessage("Server error occurred", "error");
     } finally {
       setIsLoading(false);
     }
   };
-  
 
   const getStepTitle = () => {
-    const prefix = isEditMode ? 'Edit ' : '';
+    const prefix = isEditMode ? "Edit " : "";
     switch (currentStep) {
-      case 1: return `${prefix}Interview Setup`;
-      case 2: return `${prefix}Questions Configuration`;
-      case 3: return `${prefix}Review & Submit`;
-      default: return `${prefix}Interview Creation`;
+      case 1:
+        return `${prefix}Interview Setup`;
+      case 2:
+        return `${prefix}Questions Configuration`;
+      case 3:
+        return `${prefix}Review & Submit`;
+      default:
+        return `${prefix}Interview Creation`;
     }
   };
 
+  // Simple progress indicator
+  const steps = [1, 2, 3];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden flex flex-col">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
-      </div>
-      
+    <>
       <Header />
-      
-      {/* Progress Indicator */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-8">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm transition-all duration-300 ${
-                    currentStep >= step 
-                      ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white' 
-                      : 'bg-white/10 text-gray-400'
-                  }`}>
-                    {step}
+      <PageShell>
+        {message && <MessageNotification message={message} messageType={messageType} onClose={clearMessage} />}
+
+        {/* Progress */}
+        <div className="max-w-5xl mx-auto mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              {steps.map((s) => (
+                <div key={s} className="flex items-center">
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                      currentStep >= s ? "bg-gradient-to-r from-violet-500 to-indigo-500 text-white" : "bg-white border border-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {s}
                   </div>
-                  {step < 3 && (
-                    <div className={`w-16 h-0.5 ml-2 transition-all duration-300 ${
-                      currentStep > step ? 'bg-gradient-to-r from-purple-500 to-blue-500' : 'bg-white/10'
-                    }`}></div>
-                  )}
+                  {s < steps.length && <div className={`w-16 h-0.5 ml-2 ${currentStep > s ? "bg-gradient-to-r from-violet-400 to-indigo-500" : "bg-gray-200"}`} />}
                 </div>
               ))}
             </div>
-            <div className="text-sm text-gray-400">
-              Step {currentStep} of 3: {getStepTitle()}
-            </div>
+            <div className="text-sm text-gray-600">Step {currentStep} of 3: {getStepTitle()}</div>
           </div>
         </div>
-      </div>
-      
-      <FormContainer isVisible={isVisible}>
-        {currentStep === 1 && (
-          <InterviewSetup
-            onNext={handleNext}
-            formData={formData}
-            setFormData={setFormData}
-          />
-        )}
-        
-        {currentStep === 2 && (
-          <QuestionsConfig
-            onNext={handleNext}
-            onBack={handleBack}
-            formData={formData}
-            setFormData={setFormData}
-          />
-        )}
-        
-        {currentStep === 3 && (
-       <ReviewSubmit
-       onBack={handleBack}
-       formData={formData}
-       onSubmit={handleSubmit}
-       isLoading={isLoading}
-       isEditMode={isEditMode}
-       />
-       )}
-      </FormContainer>
-      
-      <Footer />
 
-      <MessageNotification
-        message={message}
-        messageType={messageType}
-        onClose={clearMessage}
-      />
-    </div>
+        {/* Steps */}
+        <div className="max-w-5xl mx-auto">
+          {currentStep === 1 && (
+            <InterviewSetup onNext={() => setCurrentStep(2)} formData={formData} setFormData={setFormData} />)
+          }
+          {currentStep === 2 && (
+            <QuestionsConfig onNext={() => setCurrentStep(3)} onBack={() => setCurrentStep(1)} formData={formData} setFormData={setFormData} />)
+          }
+          {currentStep === 3 && (
+            <ReviewSubmit onBack={() => setCurrentStep(2)} formData={formData} onSubmit={handleSubmit} isLoading={isLoading} isEditMode={isEditMode} />)
+          }
+        </div>
+      </PageShell>
+      <Footer />
+    </>
   );
 };
 

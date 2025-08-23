@@ -1,188 +1,160 @@
-"use client";
+import React, { useState } from "react";
+import axios from "axios";
+// removed framer-motion; using CSS transitions instead
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../components/ui/header";
-import Footer from "../components/ui/footer";
-import { getAuthToken } from "../utils/handleToken";
-import ImageUploader from "../utils/ImageUploader";
-
-export default function OrgSignup() {
-  const navigate = useNavigate();
+const OrganizerSignup = () => {
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
-    orgname: "",
-    address: "",
-    photo: "",
-    Description: "",
+    password: "",
+    logo: null,
+    description: "",
   });
-
-  const [loading, setLoading] = useState(false);
-  const [tokenChecked, setTokenChecked] = useState(false);
+  const [preview, setPreview] = useState(null);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
 
-  // ✅ Step 1: Check if user is authenticated
-  useEffect(() => {
-    const token = getAuthToken();
-    if (!token) {
-      navigate("/login");
-    } else {
-      setTokenChecked(true);
-    }
-  }, [navigate]);
-
-  // ✅ Step 2: Handle form change
+  // handle input changes
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value, files } = e.target;
+    if (files) {
+      setFormData({ ...formData, [name]: files[0] });
+      setPreview(URL.createObjectURL(files[0]));
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
-  // ✅ Step 3: Submit organization registration
+  // handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    const token = getAuthToken();
+    const data = new FormData();
+    Object.keys(formData).forEach((key) => {
+      data.append(key, formData[key]);
+    });
 
     try {
-      // 🎯 POST to create organization
-      const response = await fetch("http://localhost:8000/api/organization/create-org/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Token ${token}`,
-        },
-        body: JSON.stringify(formData),
+      const res = await axios.post("/api/organizer/signup", data, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage(data.message || "Organization created successfully!");
-        setError("");
-
-        // 🔄 GET organization ID after registration
-        const idRes = await fetch("http://localhost:8000/api/organization/get-org-id/", {
-          method: "GET",
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        });
-
-        const idData = await idRes.json();
-
-        if (idRes.ok && idData.organization_id) {
-          // ✅ Redirect to OrgDashboard
-          navigate(`/org-dashboard/${idData.organization_id}`);
-        } else {
-          setError("Organization created, but failed to retrieve ID.");
-        }
-      } else {
-        setError(data.error || JSON.stringify(data));
-        setMessage("");
-      }
+      setMessage(res.data.message || "Signup successful!");
     } catch (err) {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+      setMessage(err.response?.data?.message || "Something went wrong!");
     }
   };
 
-  // 🔐 Show loading until token is validated
-  if (!tokenChecked) {
+  // floating background circles
+  const FloatingCircles = () => {
+    const circles = Array.from({ length: 10 });
     return (
-      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
-        Verifying token...
+      <div className="absolute inset-0 overflow-hidden">
+        {circles.map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-32 h-32 rounded-full bg-purple-300/70 blur-3xl animate-pulse"
+            style={{
+              top: `${Math.random() * 90}%`,
+              left: `${Math.random() * 90}%`,
+              animationDuration: `${6 + Math.random() * 6}s`,
+            }}
+          />
+        ))}
       </div>
     );
-  }
+  };
 
-  // ✅ Render Org Signup Form
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      <Header />
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-200 via-purple-300 to-indigo-300 overflow-hidden">
+      {/* Floating circles background */}
+      <FloatingCircles />
 
-      <div className="max-w-xl mx-auto py-16 px-6">
-        <div className="bg-slate-800/60 backdrop-blur-lg border border-purple-500/20 rounded-3xl shadow-2xl p-8 transition-all duration-300">
-          <h1 className="text-3xl font-bold mb-6 text-center text-purple-300">
-            Register Your Organization
-          </h1>
+      {/* Form card */}
+      <div
+        className="relative z-10 w-full max-w-lg p-8 rounded-2xl bg-white/30 backdrop-blur-xl shadow-2xl transition-all duration-700 ease-out translate-y-0 opacity-100"
+      >
+        <h2 className="text-3xl font-bold text-center mb-6 text-purple-900">
+          Organizer Signup
+        </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {message && (
+          <div className="mb-4 p-3 rounded-lg bg-white/60 text-purple-800 text-center">
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="name"
+            placeholder="Organizer Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-full bg-white/70 backdrop-blur-md border border-purple-300 focus:ring-2 focus:ring-indigo-400 outline-none"
+            required
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-full bg-white/70 backdrop-blur-md border border-purple-300 focus:ring-2 focus:ring-indigo-400 outline-none"
+            required
+          />
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-full bg-white/70 backdrop-blur-md border border-purple-300 focus:ring-2 focus:ring-indigo-400 outline-none"
+            required
+          />
+
+          {/* Logo uploader */}
+          <div className="flex flex-col items-center justify-center border-2 border-dashed border-purple-400 rounded-xl p-6 bg-white/40 cursor-pointer hover:bg-white/60 transition">
             <input
-              type="email"
-              name="email"
-              placeholder="Organization Email"
-              value={formData.email}
+              type="file"
+              name="logo"
+              accept="image/*"
               onChange={handleChange}
-              required
-              className="w-full p-3 rounded bg-gray-700 text-white placeholder-gray-400"
+              className="hidden"
+              id="logoUpload"
             />
-
-            <input
-              type="text"
-              name="orgname"
-              placeholder="Organization Name"
-              value={formData.orgname}
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded bg-gray-700 text-white placeholder-gray-400"
-            />
-
-            <input
-              type="text"
-              name="address"
-              placeholder="Address"
-              value={formData.address}
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded bg-gray-700 text-white placeholder-gray-400"
-            />
-
-            {/* ✅ Replaced Photo URL with ImageUploader */}
-            <div>
-              <label className="block text-sm mb-2">Organization Logo</label>
-              <ImageUploader
-                onUploadSuccess={(url) => setFormData((prev) => ({ ...prev, photo: url }))}
-              />
-              {formData.photo && (
+            <label htmlFor="logoUpload" className="cursor-pointer text-purple-700">
+              {preview ? (
                 <img
-                  src={formData.photo}
-                  alt="Organization Logo"
-                  className="w-24 h-24 mt-3 rounded-lg border border-gray-600"
+                  src={preview}
+                  alt="Logo Preview"
+                  className="w-24 h-24 rounded-full object-cover shadow-md"
                 />
+              ) : (
+                "Upload Organizer Logo"
               )}
-            </div>
+            </label>
+          </div>
 
-            <textarea
-              name="Description"
-              placeholder="Description"
-              value={formData.Description}
-              onChange={handleChange}
-              rows={4}
-              required
-              className="w-full p-3 rounded bg-gray-700 text-white placeholder-gray-400 resize-none"
-            />
+          <textarea
+            name="description"
+            placeholder="Organizer Description"
+            value={formData.description}
+            onChange={handleChange}
+            rows="4"
+            className="w-full px-4 py-3 rounded-2xl bg-white/70 backdrop-blur-md border border-purple-300 focus:ring-2 focus:ring-indigo-400 outline-none resize-none"
+            required
+          />
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full bg-purple-600 hover:bg-purple-700 transition-colors p-3 rounded font-semibold text-lg ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              {loading ? "Registering..." : "Submit"}
-            </button>
-
-            {message && <p className="text-green-400 text-center mt-4">{message}</p>}
-            {error && <p className="text-red-400 text-center mt-4">{error}</p>}
-          </form>
-        </div>
+          <button
+            type="submit"
+            className="w-full py-3 rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 text-white font-semibold text-lg shadow-lg hover:scale-105 hover:shadow-purple-400/50 transition-transform"
+          >
+            Sign Up
+          </button>
+        </form>
       </div>
-
-      <Footer />
     </div>
   );
-}
+};
+
+export default OrganizerSignup;
